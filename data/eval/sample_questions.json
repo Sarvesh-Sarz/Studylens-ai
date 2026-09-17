@@ -1,0 +1,42 @@
+[
+  {
+    "question": "What is a deadlock in an operating system?",
+    "expected_source": "Operating Systems.pdf",
+    "expected_page": 41
+  },
+  {
+    "question": "What are the four necessary conditions for deadlock?",
+    "expected_source": "Operating Systems.pdf",
+    "expected_page": 42
+  },
+  {
+    "question": "What is the difference between paging and segmentation?",
+    "expected_source": "Operating Systems.pdf",
+    "expected_page": 58
+  },
+  {
+    "question": "What is a transaction in a database management system?",
+    "expected_source": "Database Management Systems.pdf",
+    "expected_page": 12
+  },
+  {
+    "question": "What does the ACID property of transactions stand for?",
+    "expected_source": "Database Management Systems.pdf",
+    "expected_page": 14
+  },
+  {
+    "question": "How does two-phase locking prevent conflicting concurrent updates?",
+    "expected_source": "Database Management Systems.pdf",
+    "expected_page": 21
+  },
+  {
+    "question": "What is the difference between TCP and UDP?",
+    "expected_source": "Computer Networks.pdf",
+    "expected_page": 33
+  },
+  {
+    "question": "What is the purpose of the ARP protocol?",
+    "expected_source": "Computer Networks.pdf",
+    "expected_page": 47
+  }
+]
