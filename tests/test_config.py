@@ -12,6 +12,8 @@ def test_default_config_has_sensible_values():
     assert config.chunk_size == 1000
     assert config.chunk_overlap == 150
     assert config.top_k == 5
+    assert config.min_relevance_score == 0.0
+    assert config.openai_model == "gpt-5.6-terra"
     assert config.embedding_model == "all-MiniLM-L6-v2"
 
 
@@ -49,6 +51,13 @@ def test_validate_retrieval_rejects_non_positive_top_k():
         config.validate_retrieval()
 
 
-def test_validate_retrieval_passes_for_positive_top_k():
-    config = AppConfig(top_k=5)
+def test_validate_retrieval_rejects_invalid_relevance_score():
+    for score in (-1.01, 1.01):
+        config = AppConfig(top_k=5, min_relevance_score=score)
+        with pytest.raises(ConfigError):
+            config.validate_retrieval()
+
+
+def test_validate_retrieval_passes_for_valid_settings():
+    config = AppConfig(top_k=5, min_relevance_score=0.75)
     config.validate_retrieval()  # should not raise

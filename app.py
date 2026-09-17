@@ -184,6 +184,7 @@ def get_knowledge_base() -> KnowledgeBase:
             chunk_size=config.chunk_size,
             chunk_overlap=config.chunk_overlap,
             top_k=config.top_k,
+            min_relevance_score=config.min_relevance_score,
         )
     return st.session_state.kb
 
@@ -238,6 +239,8 @@ def render_sidebar() -> None:
         st.caption(f"Model: `{config.openai_model}`")
         st.caption(f"Embedding: `{config.embedding_model}`")
         st.caption(f"Top-K retrieval: `{config.top_k}`")
+        if config.min_relevance_score > 0:
+            st.caption(f"Minimum relevance: `{config.min_relevance_score:.2f}`")
         if not config.openai_api_key:
             st.warning("OPENAI_API_KEY is not set. Add it to your .env file to enable answers.", icon="⚠️")
 

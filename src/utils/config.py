@@ -49,7 +49,7 @@ class AppConfig:
 
     # LLM
     openai_api_key: str = field(default_factory=lambda: os.getenv("OPENAI_API_KEY", ""))
-    openai_model: str = field(default_factory=lambda: os.getenv("OPENAI_MODEL", "gpt-4o-mini"))
+    openai_model: str = field(default_factory=lambda: os.getenv("OPENAI_MODEL", "gpt-5.6-terra"))
 
     # Embeddings
     embedding_model: str = field(
@@ -93,6 +93,8 @@ class AppConfig:
         """Raise ConfigError if retrieval parameters are nonsensical."""
         if self.top_k <= 0:
             raise ConfigError("TOP_K must be a positive integer.")
+        if not -1.0 <= self.min_relevance_score <= 1.0:
+            raise ConfigError("MIN_RELEVANCE_SCORE must be between -1 and 1.")
 
 
 def get_config() -> AppConfig:

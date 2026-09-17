@@ -89,3 +89,22 @@ def test_retrieve_respects_top_k_override():
     result = retriever.retrieve("database networking deadlock", top_k=1)
 
     assert len(result.chunks) == 1
+
+
+def test_retrieve_applies_min_relevance_score():
+    model, store = _build_store()
+    retriever = Retriever(model, store, top_k=5, min_relevance_score=0.9)
+
+    result = retriever.retrieve("What is a deadlock?")
+
+    assert len(result.chunks) == 1
+    assert result.chunks[0].chunk.source == "OS.pdf"
+
+
+def test_retrieve_returns_empty_when_no_result_meets_threshold():
+    model, store = _build_store()
+    retriever = Retriever(model, store, top_k=5, min_relevance_score=1.01 - 1e-9)
+
+    result = retriever.retrieve("What is a deadlock?")
+
+    assert result.is_empty

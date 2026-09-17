@@ -8,7 +8,7 @@ PyMuPDF==1.24.14
 sentence-transformers==3.3.1
 
 # Vector store
-faiss-cpu==1.9.0.post1
+faiss-cpu==1.15.1
 
 # LLM
 openai==1.109.1

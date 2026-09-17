@@ -37,12 +37,17 @@ class KnowledgeBaseStats:
 class KnowledgeBase:
     """Holds the indexed state for all documents uploaded in a session."""
 
-    def __init__(self, embedding_model: EmbeddingModel, chunk_size: int, chunk_overlap: int, top_k: int):
+    def __init__(self, embedding_model: EmbeddingModel, chunk_size: int, chunk_overlap: int, top_k: int, min_relevance_score: float = 0.0):
         self.embedding_model = embedding_model
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self.vector_store = VectorStore(dimension=embedding_model.dimension)
-        self.retriever = Retriever(embedding_model, self.vector_store, top_k=top_k)
+        self.retriever = Retriever(
+            embedding_model,
+            self.vector_store,
+            top_k=top_k,
+            min_relevance_score=min_relevance_score,
+        )
         self._pages_by_source: dict[str, int] = {}
 
     def add_document(self, file_path: str | Path, source_name: str, progress: ProgressCallback = None) -> int:

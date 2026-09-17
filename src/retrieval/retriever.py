@@ -30,10 +30,16 @@ class RetrievalResult:
 class Retriever:
     """Retrieves the most relevant chunks for a query from a VectorStore."""
 
-    def __init__(self, embedding_model: EmbeddingModel, vector_store: VectorStore, top_k: int):
+    def __init__(self, embedding_model: EmbeddingModel, vector_store: VectorStore, top_k: int, min_relevance_score: float = 0.0):
         self.embedding_model = embedding_model
         self.vector_store = vector_store
         self.top_k = top_k
+        self.min_relevance_score = min_relevance_score
+
+        if top_k <= 0:
+            raise ValueError("top_k must be positive")
+        if not -1.0 <= min_relevance_score <= 1.0:
+            raise ValueError("min_relevance_score must be between -1 and 1")
 
     def retrieve(self, query: str, top_k: int | None = None) -> RetrievalResult:
         """Embed `query` and return the most relevant chunks across all docs.
@@ -53,4 +59,6 @@ class Retriever:
 
         query_embedding = self.embedding_model.encode_one(query)
         results = self.vector_store.search(query_embedding, top_k=k)
+        if self.min_relevance_score > 0.0:
+            results = [r for r in results if r.score >= self.min_relevance_score]
         return RetrievalResult(query=query, chunks=results)

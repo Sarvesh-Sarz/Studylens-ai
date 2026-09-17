@@ -8,6 +8,13 @@ A Retrieval-Augmented Generation (RAG) knowledge assistant for engineering stude
 
 ## Overview
 
+## Current Build Notes
+
+The current build supports an optional `MIN_RELEVANCE_SCORE` retrieval floor. When enabled, low-similarity chunks are filtered before generation, so the UI and LLM receive the same thresholded retrieval set. The default remains `0.0` until a real evaluation dataset is run, avoiding an arbitrary threshold that could discard useful evidence.
+
+The default answer-generation model is `gpt-5.6-terra`. OpenAI currently documents this model as balancing intelligence and cost and supporting both Chat Completions and streaming.
+
+
 StudyLens AI lets a student upload one or more PDFs (e.g. Operating Systems, DBMS, Computer Networks lecture notes) and ask questions about them in a chat interface. Every answer is generated only from retrieved passages of the uploaded documents, and every answer shows exactly which document and page it came from. If the documents don't contain the answer, StudyLens says so instead of guessing.
 
 ## Problem
@@ -168,7 +175,7 @@ Set these in `.env` (see `.env.example`):
 | Variable               | Purpose                                            | Default              |
 |------------------------|-----------------------------------------------------|-----------------------|
 | `OPENAI_API_KEY`       | Your OpenAI API key (required to generate answers)  | *(none — required)*  |
-| `OPENAI_MODEL`         | Chat model used for generation                      | `gpt-4o-mini`         |
+| `OPENAI_MODEL`         | Chat model used for generation                      | `gpt-5.6-terra`         |
 | `EMBEDDING_MODEL`      | sentence-transformers model name                    | `all-MiniLM-L6-v2`    |
 | `CHUNK_SIZE`           | Target characters per chunk                         | `1000`                |
 | `CHUNK_OVERLAP`        | Overlap between consecutive chunks (characters)     | `150`                 |
@@ -229,7 +236,7 @@ This measures the **retrieval stage only** — it does not score whether the fin
 
 ### Actual results
 
-**No evaluation run was performed against real PDFs in this environment** (no textbook PDFs were available to index, and this build environment does not have OpenAI API access configured). The `run_evaluation.py` script is provided, tested for correct wiring against synthetic data (see `tests/test_evaluate.py`, which passes), and ready to run once you supply real PDFs — but no numbers are reported here because none were genuinely produced. Please run it yourself and report the real output.
+**No evaluation run was performed against real PDFs in this environment** (no textbook PDFs were available to index, and this build environment does not have OpenAI API access configured). The `run_evaluation.py` script is provided and tested for correct wiring against synthetic data (see `tests/test_evaluate.py`, which passes), and ready to run once you supply real PDFs — but no numbers are reported here because none were genuinely produced. Please run it yourself and report the real output.
 
 ## Design Decisions
 
