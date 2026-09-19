@@ -48,8 +48,8 @@ class AppConfig:
     """Immutable snapshot of application configuration."""
 
     # LLM
-    openai_api_key: str = field(default_factory=lambda: os.getenv("OPENAI_API_KEY", ""))
-    openai_model: str = field(default_factory=lambda: os.getenv("OPENAI_MODEL", "gpt-5.6-terra"))
+    gemini_api_key: str = field(default_factory=lambda: os.getenv("GEMINI_API_KEY", ""))
+    gemini_model: str = field(default_factory=lambda: os.getenv("GEMINI_MODEL", "gemini-2.5-flash"))
 
     # Embeddings
     embedding_model: str = field(
@@ -74,9 +74,9 @@ class AppConfig:
 
     def validate_for_llm(self) -> None:
         """Raise ConfigError if settings required for LLM calls are missing."""
-        if not self.openai_api_key:
+        if not self.gemini_api_key:
             raise ConfigError(
-                "OPENAI_API_KEY is not set. Add it to your .env file or environment "
+                "GEMINI_API_KEY is not set. Add it to your .env file or environment "
                 "before asking questions."
             )
 

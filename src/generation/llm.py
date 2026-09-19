@@ -1,11 +1,4 @@
-"""
-LLM integration, isolated from the UI and from retrieval.
-
-Reads OPENAI_API_KEY / OPENAI_MODEL from environment variables (via
-utils.config) and never hard-codes credentials. The API key is never sent
-to or rendered by the frontend -- it is only used server-side, inside this
-process, when calling the OpenAI API.
-"""
+"""Gemini LLM integration, isolated from the UI and retrieval."""
 
 from __future__ import annotations
 
@@ -32,22 +25,25 @@ class GenerationResult:
 
 
 class LLMClient:
-    """Thin wrapper around the OpenAI chat completions API."""
+    """Thin wrapper around the Google GenAI generate-content API."""
 
     def __init__(self, api_key: str, model: str):
         if not api_key:
             raise LLMError(
-                "No OpenAI API key configured. Set OPENAI_API_KEY in your .env file."
+                "No Gemini API key configured. Set GEMINI_API_KEY in your .env file."
             )
         try:
-            from openai import OpenAI
+            from google import genai
         except ImportError as exc:
             raise LLMError(
-                "The `openai` package is not installed. Run `pip install -r requirements.txt`."
+                "The `google-genai` package is not installed. Run `pip install -r requirements.txt`."
             ) from exc
 
         self.model = model
-        self._client = OpenAI(api_key=api_key)
+        try:
+            self._client = genai.Client(api_key=api_key)
+        except Exception as exc:
+            raise LLMError(_friendly_gemini_error(exc)) from exc
 
     def generate_answer(
         self,
@@ -57,62 +53,47 @@ class LLMClient:
         max_history_turns: int,
         temperature: float = 0.2,
     ) -> GenerationResult:
-        """Generate a grounded answer to `question` using retrieved `chunks`.
-
-        Args:
-            question: The user's current question.
-            chunks: Retrieved chunks to ground the answer in (may be empty).
-            history: Prior conversation turns, for resolving follow-ups.
-            max_history_turns: How many recent turns to include in the prompt.
-            temperature: Sampling temperature (kept low for factual grounding).
-
-        Returns:
-            GenerationResult with the answer text and the chunks it was
-            grounded in (i.e. the same `chunks` passed in, echoed back for
-            convenience when rendering citations).
-
-        Raises:
-            LLMError: on authentication failure, rate limiting, or any other
-                API error. Messages are written to be safe to show to users.
-        """
+        """Generate a grounded answer using retrieved chunks and conversation history."""
         user_prompt = build_user_prompt(question, chunks, history, max_history_turns)
 
         try:
-            response = self._client.chat.completions.create(
+            from google.genai import types
+
+            response = self._client.models.generate_content(
                 model=self.model,
-                temperature=temperature,
-                messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": user_prompt},
-                ],
+                contents=user_prompt,
+                config=types.GenerateContentConfig(
+                    system_instruction=SYSTEM_PROMPT,
+                    temperature=temperature,
+                ),
             )
         except Exception as exc:
-            raise LLMError(_friendly_openai_error(exc)) from exc
+            raise LLMError(_friendly_gemini_error(exc)) from exc
 
-        answer = (response.choices[0].message.content or "").strip()
+        answer = (getattr(response, "text", None) or "").strip()
         if not answer:
             raise LLMError("The model returned an empty response. Please try again.")
 
         return GenerationResult(answer=answer, used_chunks=chunks)
 
 
-def _friendly_openai_error(exc: Exception) -> str:
-    """Translate common OpenAI SDK exceptions into user-facing messages."""
-    # Import lazily/defensively: exact exception classes vary slightly by
-    # SDK version, so we fall back to string matching if imports fail.
+def _friendly_gemini_error(exc: Exception) -> str:
+    """Translate common Gemini SDK/API errors into safe UI messages."""
     name = type(exc).__name__
-    message = str(exc)
+    message = str(exc).lower()
 
-    if "AuthenticationError" in name or "401" in message:
-        return "The OpenAI API key appears to be invalid. Please check your .env file."
-    if "RateLimitError" in name or "429" in message:
-        return "The OpenAI API rate limit was reached. Please wait a moment and try again."
-    if "APIConnectionError" in name or "Connection" in name:
-        return "Could not connect to the OpenAI API. Please check your internet connection."
-    if "APITimeoutError" in name or "Timeout" in name:
-        return "The request to the OpenAI API timed out. Please try again."
-    if "BadRequestError" in name or "400" in message:
-        return "The request to the OpenAI API was invalid. This may be a configuration issue."
+    if "authentication" in name.lower() or "api key" in message or "401" in message:
+        return "The Gemini API key appears to be invalid. Please check your .env file."
+    if "permission" in name.lower() or "403" in message:
+        return "The Gemini API request was not permitted. Check that the API key and project are configured correctly."
+    if "resourceexhausted" in name.lower() or "ratelimit" in name.lower() or "429" in message:
+        return "The Gemini API rate limit was reached. Please wait a moment and try again."
+    if "timeout" in name.lower() or "timed out" in message:
+        return "The request to the Gemini API timed out. Please try again."
+    if "connection" in name.lower() or "network" in message:
+        return "Could not connect to the Gemini API. Please check your internet connection."
+    if "400" in message or "invalidargument" in name.lower():
+        return "The request to the Gemini API was invalid. This may be a model or configuration issue."
 
-    logger.exception("Unhandled OpenAI API error")
+    logger.exception("Unhandled Gemini API error")
     return "An unexpected error occurred while generating the answer. Please try again."

@@ -236,13 +236,13 @@ def render_sidebar() -> None:
 
         st.markdown('<div class="sl-section-label">Settings</div>', unsafe_allow_html=True)
         config = get_config()
-        st.caption(f"Model: `{config.openai_model}`")
+        st.caption(f"Model: `{config.gemini_model}`")
         st.caption(f"Embedding: `{config.embedding_model}`")
         st.caption(f"Top-K retrieval: `{config.top_k}`")
         if config.min_relevance_score > 0:
             st.caption(f"Minimum relevance: `{config.min_relevance_score:.2f}`")
-        if not config.openai_api_key:
-            st.warning("OPENAI_API_KEY is not set. Add it to your .env file to enable answers.", icon="⚠️")
+        if not config.gemini_api_key:
+            st.warning("GEMINI_API_KEY is not set. Add it to your .env file to enable answers.", icon="⚠️")
 
         st.markdown("---")
         if st.button("🗑️ Clear conversation", use_container_width=True):
@@ -392,7 +392,7 @@ def handle_user_question(question: str) -> None:
         with st.spinner("Generating answer..."):
             try:
                 config.validate_for_llm()
-                llm = LLMClient(api_key=config.openai_api_key, model=config.openai_model)
+                llm = LLMClient(api_key=config.gemini_api_key, model=config.gemini_model)
                 history_for_prompt = [
                     {"role": m["role"], "content": m["content"]}
                     for m in st.session_state.messages[:-1]

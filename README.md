@@ -12,7 +12,7 @@ A Retrieval-Augmented Generation (RAG) knowledge assistant for engineering stude
 
 The current build supports an optional `MIN_RELEVANCE_SCORE` retrieval floor. When enabled, low-similarity chunks are filtered before generation, so the UI and LLM receive the same thresholded retrieval set. The default remains `0.0` until a real evaluation dataset is run, avoiding an arbitrary threshold that could discard useful evidence.
 
-The default answer-generation model is `gpt-5.6-terra`. OpenAI currently documents this model as balancing intelligence and cost and supporting both Chat Completions and streaming.
+The default answer-generation model is `gemini-2.5-flash`. Google Gemini currently documents this model as balancing intelligence and cost and supporting both Chat Completions and streaming.
 
 
 StudyLens AI lets a student upload one or more PDFs (e.g. Operating Systems, DBMS, Computer Networks lecture notes) and ask questions about them in a chat interface. Every answer is generated only from retrieved passages of the uploaded documents, and every answer shows exactly which document and page it came from. If the documents don't contain the answer, StudyLens says so instead of guessing.
@@ -29,7 +29,7 @@ StudyLens indexes uploaded PDFs into a local semantic search index (FAISS) and o
 
 - Multi-PDF upload with live processing status (read → chunk → embed → index)
 - Semantic search over all uploaded documents (FAISS + sentence-transformers)
-- Grounded answer generation via the OpenAI API, with an explicit "not found in documents" fallback
+- Grounded answer generation via the Google Gemini API, with an explicit "not found in documents" fallback
 - Per-answer **source cards**: document name, page number, relevance score, and excerpt
 - **Retrieval Details** panel showing the raw retrieved chunks and similarity scores, for transparency
 - Multi-document synthesis (e.g. "compare deadlock handling in OS with concurrency control in DBMS")
@@ -54,7 +54,7 @@ StudyLens indexes uploaded PDFs into a local semantic search index (FAISS) and o
               │   Ingestion      │  │Retrieval│ │  Generation    │
               │ pdf_loader.py    │  │         │ │  llm.py        │
               │ chunker.py       │  │embeddings│ │  prompts.py    │
-              │ (PyMuPDF)        │  │.py       │ │  (OpenAI API)  │
+              │ (PyMuPDF)        │  │.py       │ │  (Google Gemini API)  │
               │                  │  │vector_   │ │                │
               │                  │  │store.py  │ │                │
               │                  │  │(FAISS)   │ │                │
@@ -69,7 +69,7 @@ StudyLens indexes uploaded PDFs into a local semantic search index (FAISS) and o
                           └───────────────────────┘
 ```
 
-Every box under `src/` is independently importable and independently testable — `app.py` never touches PyMuPDF, sentence-transformers, FAISS, or the OpenAI SDK directly. It only calls `KnowledgeBase` and `LLMClient`.
+Every box under `src/` is independently importable and independently testable — `app.py` never touches PyMuPDF, sentence-transformers, FAISS, or the Google Gemini SDK directly. It only calls `KnowledgeBase` and `LLMClient`.
 
 ## RAG Pipeline
 
@@ -93,7 +93,7 @@ FAISS index  ◄── query embedding (same model) ── user question
 Top-k relevant chunks (with similarity scores)
    │  (prompts.py — grounding instructions + chunks + history)
    ▼
-LLM (llm.py — OpenAI chat completions)
+LLM (llm.py — Google Gemini chat completions)
    │
    ▼
 Grounded answer + source citations (rendered by app.py)
@@ -107,7 +107,7 @@ Grounded answer + source citations (rendered by app.py)
 | PDF extraction    | PyMuPDF (`fitz`)                    |
 | Embeddings        | sentence-transformers (`all-MiniLM-L6-v2`) |
 | Vector store      | FAISS (`IndexFlatIP`, local, in-memory) |
-| LLM               | OpenAI API (chat completions)       |
+| LLM               | Google Gemini API (chat completions)       |
 | Config            | `python-dotenv` + environment variables |
 | Testing           | `pytest`                            |
 
@@ -133,7 +133,7 @@ studylens-ai/
 │   │   ├── vector_store.py     # FAISS index + chunk/metadata storage
 │   │   └── retriever.py        # Query embedding + top-k search
 │   ├── generation/
-│   │   ├── llm.py              # OpenAI API call + friendly error handling
+│   │   ├── llm.py              # Google Gemini API call + friendly error handling
 │   │   └── prompts.py          # System prompt + grounded prompt construction
 │   ├── evaluation/
 │   │   └── evaluate.py         # Retrieval hit-rate / MRR scoring
@@ -165,7 +165,7 @@ python -m venv venv
 source venv/bin/activate          # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env
-# then edit .env and set OPENAI_API_KEY
+# then edit .env and set GEMINI_API_KEY
 ```
 
 ## Environment Variables
@@ -174,8 +174,8 @@ Set these in `.env` (see `.env.example`):
 
 | Variable               | Purpose                                            | Default              |
 |------------------------|-----------------------------------------------------|-----------------------|
-| `OPENAI_API_KEY`       | Your OpenAI API key (required to generate answers)  | *(none — required)*  |
-| `OPENAI_MODEL`         | Chat model used for generation                      | `gpt-5.6-terra`         |
+| `GEMINI_API_KEY`       | Your Google Gemini API key (required to generate answers)  | *(none — required)*  |
+| `GEMINI_MODEL`         | Chat model used for generation                      | `gemini-2.5-flash`         |
 | `EMBEDDING_MODEL`      | sentence-transformers model name                    | `all-MiniLM-L6-v2`    |
 | `CHUNK_SIZE`           | Target characters per chunk                         | `1000`                |
 | `CHUNK_OVERLAP`        | Overlap between consecutive chunks (characters)     | `150`                 |
@@ -236,7 +236,7 @@ This measures the **retrieval stage only** — it does not score whether the fin
 
 ### Actual results
 
-**No evaluation run was performed against real PDFs in this environment** (no textbook PDFs were available to index, and this build environment does not have OpenAI API access configured). The `run_evaluation.py` script is provided and tested for correct wiring against synthetic data (see `tests/test_evaluate.py`, which passes), and ready to run once you supply real PDFs — but no numbers are reported here because none were genuinely produced. Please run it yourself and report the real output.
+**No evaluation run was performed against real PDFs in this environment** (no textbook PDFs were available to index, and this build environment does not have Google Gemini API access configured). The `run_evaluation.py` script is provided and tested for correct wiring against synthetic data (see `tests/test_evaluate.py`, which passes), and ready to run once you supply real PDFs — but no numbers are reported here because none were genuinely produced. Please run it yourself and report the real output.
 
 ## Design Decisions
 
@@ -256,7 +256,7 @@ This measures the **retrieval stage only** — it does not score whether the fin
 
 - **Scanned/image-only PDFs are not supported.** PyMuPDF only extracts text that exists as text in the PDF; scanned pages with no text layer would need OCR (not implemented).
 - **Retrieval quality depends on chunking and embedding choices.** A small, general-purpose embedding model (`all-MiniLM-L6-v2`) is fast and free but not as accurate as larger, paid embedding APIs for subtle semantic distinctions.
-- **API dependency.** Answer generation requires a working OpenAI API key and internet access; without it, only upload/browse/retrieval-inspection features work.
+- **API dependency.** Answer generation requires a working Google Gemini API key and internet access; without it, only upload/browse/retrieval-inspection features work.
 - **No persistent vector storage.** The FAISS index lives in memory for the Streamlit session; documents must be re-uploaded (and re-embedded) after a restart. There is no on-disk index persistence in this version.
 - **Single-process, single-user design.** No authentication, no multi-user isolation — appropriate for a local study tool, not for a shared/hosted deployment as-is.
 - **Chunking is character-based, not semantic.** It tries to break on natural boundaries (paragraphs/sentences) but doesn't understand document structure (headings, tables) the way a layout-aware chunker would.
@@ -273,7 +273,7 @@ This measures the **retrieval stage only** — it does not score whether the fin
 
 ## AI Tools Disclosure
 
-This project was built with the assistance of an AI coding assistant (Claude, by Anthropic), which was used to design the module structure, write the ingestion/retrieval/generation pipeline, the Streamlit UI, the test suite, and this README. It was not written entirely manually. All code was reviewed for correctness and internal consistency, and the automated tests in `tests/` were actually executed (42/42 passing at the time of writing, including a full-pipeline integration test in `tests/test_knowledge_base.py` that exercises ingest → chunk → embed → index → retrieve end to end on a real generated PDF) rather than assumed to pass. No evaluation metrics, screenshots, or benchmark numbers were fabricated — the "Actual results" section above states plainly that no live evaluation run was performed, since no real textbook PDFs or OpenAI credentials were available in the build environment.
+This project was built with the assistance of an AI coding assistant (Claude, by Anthropic), which was used to design the module structure, write the ingestion/retrieval/generation pipeline, the Streamlit UI, the test suite, and this README. It was not written entirely manually. All code was reviewed for correctness and internal consistency, and the automated tests in `tests/` were actually executed (42/42 passing at the time of writing, including a full-pipeline integration test in `tests/test_knowledge_base.py` that exercises ingest → chunk → embed → index → retrieve end to end on a real generated PDF) rather than assumed to pass. No evaluation metrics, screenshots, or benchmark numbers were fabricated — the "Actual results" section above states plainly that no live evaluation run was performed, since no real textbook PDFs or Google Gemini credentials were available in the build environment.
 
 One specific thing worth disclosing: the real `sentence-transformers` embedding model could not be downloaded in the build sandbox (its network is restricted to package registries and cannot reach `huggingface.co`), so the retrieval pipeline was tested with a small deterministic fake embedding model instead of the real one. That test run did usefully confirm one real thing: attempting to load the real model failed gracefully with the intended `EmbeddingError` message rather than crashing with a raw traceback, which is the behavior `embeddings.py` was designed to produce. The real model will download normally the first time you run the app with internet access.
 
@@ -285,6 +285,6 @@ Before an interview or demo, manually verify:
 2. Asking a question with no answer in the documents and confirming the "not found" fallback triggers instead of a hallucinated answer.
 3. Asking a follow-up question ("What about its causes?") and confirming it's understood in context.
 4. Uploading two PDFs and asking a comparison question that should cite both.
-5. Removing/blanking `OPENAI_API_KEY` and confirming the UI shows a friendly warning rather than crashing.
+5. Removing/blanking `GEMINI_API_KEY` and confirming the UI shows a friendly warning rather than crashing.
 6. Uploading a corrupted or non-PDF file and confirming a graceful error message.
 7. Running `pytest` and confirming all tests pass in your environment.

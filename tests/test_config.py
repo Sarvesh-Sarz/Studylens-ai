@@ -8,23 +8,23 @@ from src.utils.config import AppConfig, ConfigError
 
 
 def test_default_config_has_sensible_values():
-    config = AppConfig(openai_api_key="")
+    config = AppConfig(gemini_api_key="")
     assert config.chunk_size == 1000
     assert config.chunk_overlap == 150
     assert config.top_k == 5
     assert config.min_relevance_score == 0.0
-    assert config.openai_model == "gpt-5.6-terra"
+    assert config.gemini_model == "gemini-2.5-flash"
     assert config.embedding_model == "all-MiniLM-L6-v2"
 
 
 def test_validate_for_llm_raises_when_api_key_missing():
-    config = AppConfig(openai_api_key="")
+    config = AppConfig(gemini_api_key="")
     with pytest.raises(ConfigError):
         config.validate_for_llm()
 
 
 def test_validate_for_llm_passes_when_api_key_present():
-    config = AppConfig(openai_api_key="sk-test-123")
+    config = AppConfig(gemini_api_key="test-key")
     config.validate_for_llm()  # should not raise
 
 
