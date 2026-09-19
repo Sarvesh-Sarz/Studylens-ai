@@ -71,7 +71,6 @@ CUSTOM_CSS = """
 
     [data-testid="stFileUploader"] section {
         border: 1px solid var(--sl-border-strong) !important;
-        border-radius: 12px !important;
         background: var(--sl-surface) !important;
         padding: 0.75rem !important;
     }
@@ -82,7 +81,6 @@ CUSTOM_CSS = """
 
     [data-testid="stFileUploader"] button {
         border: 1px solid #222 !important;
-        border-radius: 8px !important;
         background: #222 !important;
         color: white !important;
     }
@@ -121,8 +119,7 @@ CUSTOM_CSS = """
         font-size: 0.78rem;
         line-height: 1.35;
         padding: 0.6rem 0.7rem;
-        border: 1px solid var(--sl-border);
-        border-radius: 9px;
+        border: 1px solid var(--sl-border); 
         background: var(--sl-surface);
         margin-bottom: 0.4rem;
         overflow-wrap: anywhere;
@@ -179,7 +176,6 @@ CUSTOM_CSS = """
         text-align: center;
         padding: 2.5rem 1.5rem;
         border: 1px solid var(--sl-border);
-        border-radius: 16px;
         background: rgba(255,255,255,0.58);
     }
 
@@ -208,7 +204,6 @@ CUSTOM_CSS = """
         max-width: 78%;
         background: #e9e9e7;
         border: 1px solid #dededb;
-        border-radius: 14px;
         padding: 0.85rem 1rem;
         color: #222;
         line-height: 1.55;
@@ -233,7 +228,6 @@ CUSTOM_CSS = """
 
     .sl-source-card {
         border: 1px solid var(--sl-border);
-        border-radius: 10px;
         padding: 0.75rem 0.85rem;
         margin-bottom: 0.5rem;
         background: #fbfbfa;
@@ -278,7 +272,6 @@ CUSTOM_CSS = """
 
     /* Native Streamlit controls */
     .stButton > button {
-        border-radius: 9px !important;
         border: 1px solid #d6d6d2 !important;
         background: #fff !important;
         color: #222 !important;
@@ -291,13 +284,11 @@ CUSTOM_CSS = """
     }
 
     [data-testid="stChatInput"] {
-        border-radius: 13px !important;
     }
 
     [data-testid="stChatInput"] > div {
         border: 1px solid #cfcfcb !important;
         background: #fff !important;
-        border-radius: 13px !important;
         box-shadow: 0 5px 20px rgba(0,0,0,0.04) !important;
     }
 
@@ -312,18 +303,40 @@ CUSTOM_CSS = """
 
     [data-testid="stExpander"] {
         border: 1px solid var(--sl-border) !important;
-        border-radius: 10px !important;
         background: #fff !important;
     }
 
     [data-testid="stAlert"] {
-        border-radius: 10px !important;
     }
 
     code {
         color: #333 !important;
         background: #ededeb !important;
-        border-radius: 5px !important;
+    }
+
+    /* Remove Streamlit's default rounded corners */
+
+    [data-testid="stChatInput"] *,
+    [data-testid="stFileUploader"] *,
+    [data-testid="stExpander"] *,
+    .stButton > button {
+        border-radius: 0 !important;
+    }
+
+    [data-testid="stChatInput"] > div {
+        border-radius: 0 !important;
+    }
+
+    [data-testid="stFileUploader"] section {
+        border-radius: 0 !important;
+    }
+
+    [data-testid="stExpander"] {
+        border-radius: 0 !important;
+    }
+
+    [data-testid="stExpander"] details {
+        border-radius: 0 !important;
     }
 </style>
 """
